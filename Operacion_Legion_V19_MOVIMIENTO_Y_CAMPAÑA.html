@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Operación Legión — V16 ULTRA MEJORADA</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#01050d;color:#fff;font-family:Arial,Helvetica,sans-serif}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+button{font:inherit;font-weight:900;border:0;border-radius:13px;cursor:pointer}
+.hidden{display:none!important}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:10}
+.hudrow{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;gap:8px}
+.hudbox{background:rgba(3,12,25,.84);border:1px solid rgba(77,219,255,.45);border-radius:13px;padding:8px 10px;backdrop-filter:blur(8px);box-shadow:0 0 24px rgba(0,180,255,.09);min-width:145px}
+.hudbox b{font-size:13px}.mini{font-size:10px;color:#9dc4d4}.bar{height:7px;background:#142433;border-radius:99px;overflow:hidden;margin-top:5px}.fill{height:100%;width:100%;background:#50e4ff}
+#pause{position:absolute;right:10px;top:82px;width:44px;height:44px;background:#071a2a;color:#dff9ff;border:1px solid #3b7188;pointer-events:auto}
+#bossHud{position:absolute;left:14%;right:14%;top:63px;display:none;text-align:center}.bossbar{height:10px;background:#1b1420;border:1px solid #6e3857;border-radius:99px;overflow:hidden}.bossfill{height:100%;background:#ff4e7b;width:100%}.bosstxt{font-size:10px;font-weight:900;margin-top:2px;color:#ffd5df}
+#controls{position:fixed;left:0;right:0;bottom:14px;display:flex;justify-content:space-between;align-items:end;padding:0 15px;z-index:15;pointer-events:none}
+.ctrlgroup{display:flex;gap:9px;pointer-events:auto}.ctrl{width:61px;height:61px;background:rgba(5,20,34,.84);color:#fff;border:1px solid #39758f;font-size:23px;box-shadow:0 6px 20px #0008}
+.ctrl.skill{font-size:17px;color:#70eeff}
+#toast{position:fixed;top:20%;left:50%;transform:translateX(-50%);z-index:40;padding:10px 16px;border-radius:14px;background:rgba(2,13,25,.94);border:1px solid #54e4ff;display:none;font-weight:900;font-size:12px;box-shadow:0 0 28px #08bfff33}
+.screen{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:radial-gradient(circle at 50% 30%,#0a3150 0,#030c19 30%,#01040a 75%);overflow:auto}
+.panel{width:min(94vw,760px);padding:28px 22px;border:1px solid #39d8ff;border-radius:25px;background:rgba(3,13,27,.95);box-shadow:0 0 80px rgba(0,184,255,.16);text-align:center}
+.logo{font-size:clamp(34px,8vw,66px);letter-spacing:4px;margin:0}.logo span{color:#54e6ff}.tag{font-size:11px;color:#99c4d3;letter-spacing:3px;margin:8px 0 22px}
+.menuGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:17px 0}.menuGrid button{padding:15px 8px;background:#081b2e;color:#dff9ff;border:1px solid #28566e}.menuGrid button strong{display:block;font-size:18px;margin-bottom:3px}.menuGrid button small{color:#8cb4c3}
+.primary{padding:15px 26px;background:#51e1ff;color:#02121b;box-shadow:0 0 28px #42dcff44}
+.secondary{padding:12px 18px;background:#0a2033;color:#dff9ff;border:1px solid #315e74}
+.section{display:none;text-align:left}.section.active{display:block}.section h2{margin-top:0;color:#69e8ff}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.item{padding:13px;border:1px solid #244b61;border-radius:15px;background:#071626}.item h3{margin:0 0 5px}.item p{margin:4px 0;color:#91b4c2;font-size:12px}.item button{margin-top:8px;width:100%;padding:10px;background:#0c3048;color:#fff}
+.kpi{display:flex;justify-content:space-between;border-bottom:1px solid #19364a;padding:8px 0;font-size:12px}
+#gameOver{display:none}.result{font-size:12px;color:#a8c7d2;line-height:1.6}
+@media(max-width:650px){.hudbox{min-width:120px;padding:6px 8px}.hudbox b{font-size:11px}.menuGrid{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.panel{padding:22px 15px}.ctrl{width:57px;height:57px}}
+
+/* V16 ULTRA — compact premium game viewport */
+:root{--cyan:#56e8ff;--blue:#1788ff;--panel:rgba(4,14,29,.94)}
+body{background:
+ radial-gradient(circle at 50% 18%,rgba(0,160,255,.10),transparent 34%),
+ linear-gradient(180deg,#01050d,#020916 60%,#01040b)}
+#game{
+  position:fixed!important;
+  left:50%!important; top:50%!important;
+  width:min(94vw,1180px)!important;
+  height:min(86vh,760px)!important;
+  transform:translate(-50%,-50%)!important;
+  border:1px solid rgba(86,232,255,.42);
+  border-radius:22px;
+  box-shadow:0 0 0 5px rgba(4,17,32,.72),0 0 55px rgba(0,174,255,.18),inset 0 0 35px rgba(0,0,0,.45);
+  background:#010713;
+}
+#hud{inset:0!important}
+#hud .hudrow{
+  top:max(10px,calc(50% - min(43vh,380px) + 10px))!important;
+  left:calc(50% - min(47vw,590px) + 10px)!important;
+  right:calc(50% - min(47vw,590px) + 10px)!important;
+}
+#bossHud{
+  top:max(63px,calc(50% - min(43vh,380px) + 63px))!important;
+}
+#pause{top:max(82px,calc(50% - min(43vh,380px) + 82px))!important}
+#controls{
+  bottom:max(14px,calc(50% - min(43vh,380px) + 14px))!important;
+  left:calc(50% - min(47vw,590px) + 0px)!important;
+  right:calc(50% - min(47vw,590px) + 0px)!important;
+  padding:0 15px!important;
+}
+#toast{top:20%}
+.screen{background:radial-gradient(circle at 50% 30%,rgba(0,155,255,.12),rgba(1,5,13,.97) 62%)}
+.panel{
+  width:min(92vw,760px)!important;
+  max-height:88vh!important;
+  overflow:auto;
+  border:1px solid rgba(86,232,255,.34)!important;
+  background:linear-gradient(180deg,rgba(5,20,38,.96),rgba(2,9,19,.97))!important;
+  box-shadow:0 25px 90px rgba(0,0,0,.58),0 0 45px rgba(0,174,255,.10)!important;
+}
+.menuGrid button{
+  background:linear-gradient(145deg,rgba(8,34,56,.96),rgba(4,17,31,.96))!important;
+  border:1px solid rgba(86,232,255,.24)!important;
+  transition:transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+.menuGrid button:hover{transform:translateY(-2px);border-color:rgba(86,232,255,.65)!important;box-shadow:0 0 22px rgba(0,174,255,.15)}
+.logo{letter-spacing:2px;text-shadow:0 0 24px rgba(86,232,255,.24)}
+@media(max-width:700px){
+  #game{width:92vw!important;height:78vh!important;border-radius:18px}
+  #hud .hudrow{left:calc(50% - 46vw + 7px)!important;right:calc(50% - 46vw + 7px)!important}
+  #controls{left:calc(50% - 46vw)!important;right:calc(50% - 46vw)!important;padding:0 8px!important}
+  .hudbox{min-width:0!important;padding:6px 8px!important}
+  .ctrl{width:55px!important;height:55px!important}
+}
+@media(max-height:650px) and (orientation:landscape){
+  #game{width:88vw!important;height:82vh!important}
+}
+
+</style>
+
+<style id="v17-premium-ui">
+*{box-sizing:border-box}
+:root{
+ --cyan:#63ecff;--cyan2:#21a9ff;--blue:#0b5cff;--ink:#020813;
+ --glass:rgba(3,13,27,.90);--line:rgba(99,236,255,.28);
+}
+body{
+ background:
+ radial-gradient(circle at 50% 12%,rgba(23,143,255,.15),transparent 28%),
+ radial-gradient(circle at 10% 90%,rgba(0,225,255,.08),transparent 24%),
+ #01050d!important;
+}
+#hud{z-index:20!important}
+.hudrow{
+ top:max(12px,calc(50% - min(43vh,380px) + 12px))!important;
+ left:calc(50% - min(47vw,590px) + 12px)!important;
+ right:calc(50% - min(47vw,590px) + 12px)!important;
+}
+.hudbox{
+ min-width:168px!important;padding:9px 12px!important;
+ border:1px solid var(--line)!important;
+ background:linear-gradient(145deg,rgba(6,27,48,.93),rgba(2,10,22,.91))!important;
+ box-shadow:0 0 0 1px rgba(255,255,255,.025),0 10px 30px rgba(0,0,0,.35),0 0 25px rgba(0,188,255,.08)!important;
+}
+.hudbox:before{
+ content:"";display:block;height:2px;width:34px;margin-bottom:5px;
+ background:linear-gradient(90deg,var(--cyan),transparent);border-radius:5px
+}
+.hudbox b{font-size:14px!important;color:#f4fdff}
+.mini{letter-spacing:1px!important;color:#79b8ca!important}
+.bar{height:8px!important;background:#081522!important;border:1px solid #16354a}
+.fill{background:linear-gradient(90deg,#28bfff,#7ef6ff)!important;box-shadow:0 0 10px #32d9ff}
+#pause{
+ border-radius:12px!important;width:46px!important;height:46px!important;
+ background:linear-gradient(145deg,#0a2940,#05131f)!important;
+ border:1px solid #438ca8!important;box-shadow:0 8px 22px #0008!important
+}
+#bossHud{
+ left:22%!important;right:22%!important;
+ top:max(68px,calc(50% - min(43vh,380px) + 68px))!important;
+ padding:8px 12px;border-radius:12px;background:rgba(4,11,22,.74);
+ border:1px solid rgba(255,78,123,.22);backdrop-filter:blur(8px)
+}
+.bosstxt{letter-spacing:2px!important}
+.bossbar{height:11px!important;box-shadow:inset 0 0 10px #000}
+#controls{z-index:25!important}
+.ctrl{
+ width:58px!important;height:58px!important;border-radius:16px!important;
+ background:linear-gradient(145deg,rgba(8,36,59,.96),rgba(2,13,25,.96))!important;
+ border:1px solid rgba(99,236,255,.40)!important;
+ box-shadow:0 8px 24px #0009, inset 0 1px rgba(255,255,255,.05)!important;
+ transition:transform .08s ease,filter .08s ease
+}
+.ctrl:active{transform:scale(.92);filter:brightness(1.35)}
+.ctrl.skill{
+ width:70px!important;height:70px!important;border-radius:50%!important;
+ border:2px solid rgba(99,236,255,.55)!important;
+ background:radial-gradient(circle,#0b4962,#031321 68%)!important;
+ box-shadow:0 0 25px rgba(44,217,255,.20),0 10px 25px #0009!important
+}
+
+/* Main command screen */
+.screen{background:
+ radial-gradient(circle at 50% 0%,rgba(21,145,255,.17),transparent 38%),
+ linear-gradient(180deg,rgba(1,7,17,.88),rgba(1,4,10,.98))!important;
+ backdrop-filter:blur(4px)
+}
+.panel{
+ width:min(94vw,900px)!important;max-height:91vh!important;
+ padding:26px!important;border-radius:24px!important;
+ background:
+ linear-gradient(145deg,rgba(6,25,46,.97),rgba(2,8,18,.98))!important;
+ border:1px solid rgba(99,236,255,.34)!important;
+ box-shadow:0 30px 100px #000b,0 0 70px rgba(0,177,255,.10),inset 0 1px rgba(255,255,255,.06)!important;
+ position:relative;overflow:auto
+}
+.panel:before,.panel:after{
+ content:"";position:absolute;pointer-events:none
+}
+.panel:before{
+ inset:10px;border:1px solid rgba(99,236,255,.055);border-radius:18px
+}
+.logo{
+ font-size:clamp(30px,6vw,56px)!important;
+ line-height:.95!important;margin:4px 0 7px!important;
+ letter-spacing:4px!important;
+ text-shadow:0 0 30px rgba(85,225,255,.23)!important
+}
+.logo span{color:var(--cyan)!important}
+.tag{
+ display:inline-block!important;padding:6px 10px;border-radius:7px;
+ background:rgba(14,93,138,.15);border:1px solid rgba(99,236,255,.16);
+ color:#77c7db!important;letter-spacing:2px!important;font-size:9px!important
+}
+.section>p{max-width:680px;margin:16px auto!important;color:#a8c5d2!important;line-height:1.6}
+.menuGrid{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px!important;
+ margin-top:18px!important
+}
+.menuGrid button{
+ min-height:92px!important;text-align:left!important;padding:14px 15px!important;
+ display:grid!important;grid-template-columns:38px 1fr;grid-template-rows:auto auto;
+ column-gap:9px;align-items:center;
+ border-radius:17px!important;
+ background:linear-gradient(145deg,rgba(8,35,59,.98),rgba(3,14,28,.98))!important;
+ border:1px solid rgba(99,236,255,.18)!important;
+ box-shadow:0 8px 22px rgba(0,0,0,.25),inset 0 1px rgba(255,255,255,.035)!important;
+ color:#e9fbff!important;position:relative;overflow:hidden;
+}
+.menuGrid button:after{
+ content:"";position:absolute;inset:0;transform:translateX(-110%);
+ background:linear-gradient(90deg,transparent,rgba(99,236,255,.08),transparent);
+ transition:transform .35s
+}
+.menuGrid button:hover:after{transform:translateX(110%)}
+.menuGrid button:hover{border-color:rgba(99,236,255,.55)!important;transform:translateY(-2px)}
+.menuGrid button strong{
+ grid-row:1/3;font-size:25px;color:var(--cyan)!important;
+ width:38px;height:38px;display:grid;place-items:center;border-radius:11px;
+ background:rgba(43,193,255,.08);border:1px solid rgba(99,236,255,.14)
+}
+.menuGrid button small{color:#7195a5!important;font-weight:700;margin-top:3px}
+.kpi{
+ margin-top:12px!important;padding:12px 14px!important;border-radius:14px!important;
+ background:rgba(3,14,27,.72)!important;border:1px solid rgba(99,236,255,.13)!important
+}
+.kpi span{letter-spacing:1px!important;color:#6f9aaa!important}
+.kpi b{color:#f2fcff!important}
+.cards{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px!important}
+.item{
+ border-radius:17px!important;padding:15px!important;
+ background:linear-gradient(145deg,rgba(8,31,51,.92),rgba(3,13,25,.94))!important;
+ border:1px solid rgba(99,236,255,.16)!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.035)!important
+}
+.item h3{color:#dffaff!important;letter-spacing:.5px}
+.item p{color:#779aaa!important;line-height:1.45}
+.item button,.secondary{
+ background:linear-gradient(135deg,#0a76ba,#07426b)!important;
+ color:#fff!important;border:1px solid rgba(99,236,255,.36)!important;
+ border-radius:11px!important;padding:10px 13px!important
+}
+.secondary{background:rgba(7,25,41,.9)!important}
+#toast{
+ top:16%!important;padding:12px 18px!important;border-radius:14px!important;
+ background:rgba(2,12,24,.96)!important;border:1px solid rgba(99,236,255,.55)!important;
+ box-shadow:0 0 35px rgba(0,190,255,.16)!important
+}
+#v16hint{display:none!important}
+@media(max-width:680px){
+ .panel{padding:18px!important;border-radius:20px!important}
+ .menuGrid,.cards{grid-template-columns:1fr!important}
+ .menuGrid button{min-height:76px!important}
+ .hudbox{min-width:0!important;font-size:11px!important}
+ .hudbox b{font-size:12px!important}
+ #bossHud{left:12%!important;right:12%!important}
+}
+</style>
+
+
+<style id="v19-gameplay-ui">
+.dpad{pointer-events:auto;display:grid;justify-items:center;gap:3px}
+.drow{display:flex;gap:4px}
+.dpad .ctrl{width:46px!important;height:46px!important;border-radius:13px!important;font-size:18px!important}
+.dpad .upBtn,.dpad .downBtn{margin:auto}
+.dpad .centerBtn{font-size:13px!important;color:#67eaff!important}
+#campaignKillHUD{
+ position:fixed;z-index:21;left:50%;transform:translateX(-50%);
+ top:max(122px,calc(50% - min(43vh,380px) + 122px));
+ padding:7px 13px;border-radius:11px;
+ background:rgba(2,12,24,.82);border:1px solid rgba(99,236,255,.22);
+ color:#bdebf5;font:900 10px Arial;letter-spacing:1px;pointer-events:none;
+ box-shadow:0 8px 22px #0006
+}
+#campaignKillHUD b{color:#6feaff}
+@media(max-width:650px){
+ #campaignKillHUD{top:max(116px,calc(50% - min(39vh,330px) + 116px));font-size:9px}
+ .dpad .ctrl{width:43px!important;height:43px!important}
+}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud">
+  <div class="hudrow">
+    <div class="hudbox"><div class="mini">ETAPA <b id="hStage">1</b> · <span id="hZone">ZONA 1</span></div><div>PUNTOS <b id="hScore">0</b></div><div class="mini">COMBO ×<b id="hCombo">1</b></div></div>
+    <div class="hudbox"><div>❤️ <b id="hLives">3</b> · 🪙 <b id="hCoins">0</b></div><div class="mini">FALCON-X · ARMA <b id="hWeapon">1</b></div><div class="bar"><div id="hHp" class="fill"></div></div></div>
+  </div>
+  <div id="bossHud"><div class="bosstxt" id="bossName">PULPO GIGANTE</div><div class="bossbar"><div id="bossFill" class="bossfill"></div></div></div>
+  <button id="pause">Ⅱ</button>
+</div>
+
+<div id="controls">
+  <div class="dpad">
+    <button class="ctrl upBtn" id="upBtn">▲</button>
+    <div class="drow"><button class="ctrl" id="left">◀</button><button class="ctrl centerBtn" id="centerBtn">✦</button><button class="ctrl" id="right">▶</button></div>
+    <button class="ctrl downBtn" id="downBtn">▼</button>
+  </div>
+  <div class="ctrlgroup"><button class="ctrl skill" id="skill">⚡<br><small style="font-size:8px">HABILIDAD</small></button></div>
+</div>
+<div id="toast"></div><div id="campaignKillHUD">ETAPA 1 · OBJETIVO: <b id="killProgress">0 / 20</b> ENEMIGOS</div>
+
+<div id="menu" class="screen">
+ <div class="panel">
+  <h1 class="logo">OPERACIÓN <span>LEGIÓN</span></h1><div class="tag">TACTICAL SPACE COMBAT · V16 ULTRA MEJORADA</div>
+  <div id="home" class="section active">
+<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin:14px 0 0;
+padding:10px 12px;border-radius:12px;background:rgba(0,0,0,.16);border:1px solid rgba(99,236,255,.10)">
+<span style="font:900 9px Arial;letter-spacing:1.5px;color:#68bfd5">CENTRO DE COMANDO</span>
+<span style="font:900 9px Arial;letter-spacing:1px;color:#6f8492">FALCON-X / SISTEMA ONLINE</span>
+</div>
+
+   <p style="color:#b7d1dc">La versión más completa hasta ahora: campaña, mapa, hangar, mejoras permanentes, habilidades, enemigos especiales, zonas y jefe final.</p>
+   <div class="menuGrid">
+    <button id="play"><strong>▶</strong>INICIAR MISIÓN<small>Continuar campaña</small></button>
+    <button data-open="map"><strong>◎</strong>MAPA GALÁCTICO<small>Ver sectores</small></button>
+    <button data-open="hangar"><strong>◇</strong>HANGAR<small>Mejorar nave</small></button>
+    <button data-open="arsenal"><strong>▣</strong>ARSENAL<small>Armas y habilidades</small></button>
+    <button data-open="missions"><strong>★</strong>MISIONES<small>Objetivos y logros</small></button>
+    <button id="resetSave"><strong>↻</strong>REINICIAR DATOS<small>Nuevo progreso</small></button>
+   </div>
+   <div class="kpi"><span>MEJOR PUNTUACIÓN</span><b id="best">0</b></div>
+   <div class="kpi"><span>CAMPAÑA</span><b id="campaign">ETAPA 1</b></div>
+  </div>
+  <div id="map" class="section">
+   <h2>◎ MAPA GALÁCTICO</h2>
+   <div class="cards">
+    <div class="item"><h3>🌌 SECTOR 01</h3><p>Escaramuza · Zonas 1–3</p><button onclick="closeSection()">SELECCIONADO</button></div>
+    <div class="item"><h3>⚡ SECTOR 02</h3><p>Flota Legión · dificultad alta</p><button onclick="closeSection()">DESBLOQUEADO</button></div>
+    <div class="item"><h3>🐙 SECTOR 03</h3><p>Abismo · Pulpo Gigante</p><button onclick="closeSection()">JEFE FINAL</button></div>
+   </div><br><button class="secondary" onclick="closeSection()">VOLVER</button>
+  </div>
+  <div id="hangar" class="section">
+   <h2>◇ HANGAR · FALCON-X</h2>
+   <div class="kpi"><span>DAÑO</span><b id="upDamage">1</b></div><div class="kpi"><span>VELOCIDAD</span><b id="upSpeed">1</b></div><div class="kpi"><span>ESCUDO</span><b id="upShield">1</b></div>
+   <div class="cards">
+    <div class="item"><h3>⚔️ Cañón</h3><p>Mejora el daño de cada proyectil.</p><button onclick="buyUpgrade('damage')">MEJORAR · 20🪙</button></div>
+    <div class="item"><h3>🚀 Motor</h3><p>Aumenta la velocidad de movimiento.</p><button onclick="buyUpgrade('speed')">MEJORAR · 20🪙</button></div>
+    <div class="item"><h3>🛡️ Escudo</h3><p>Aumenta la resistencia máxima.</p><button onclick="buyUpgrade('shield')">MEJORAR · 25🪙</button></div>
+    <div class="item"><h3>⚡ Reactor</h3><p>Reduce el enfriamiento de habilidad.</p><button onclick="buyUpgrade('reactor')">MEJORAR · 25🪙</button></div>
+   </div><br><button class="secondary" onclick="closeSection()">VOLVER</button>
+  </div>
+  <div id="arsenal" class="section">
+   <h2>▣ ARSENAL</h2>
+   <div class="cards">
+    <div class="item"><h3>⚡ SOBRECARGA</h3><p>Durante unos segundos dispara una ráfaga más poderosa.</p></div>
+    <div class="item"><h3>🛡️ ESCUDO TÁCTICO</h3><p>La habilidad también activa protección breve.</p></div>
+    <div class="item"><h3>🔫 ARMA NIVEL 4</h3><p>Desbloqueada por progreso y power-ups durante la campaña.</p></div>
+    <div class="item"><h3>💥 COMBO</h3><p>Elimina enemigos seguidos para multiplicar tus puntos.</p></div>
+   </div><br><button class="secondary" onclick="closeSection()">VOLVER</button>
+  </div>
+  <div id="missions" class="section">
+   <h2>★ MISIONES</h2>
+   <div class="kpi"><span>ETAPA 1 · 20 BAJAS</span><b id="m10">0 / 20</b></div><div class="kpi"><span>Cazador</span><b id="m100">0 / 100</b></div><div class="kpi"><span>Arsenal completo</span><b id="mWeapon">0 / 1</b></div><div class="kpi"><span>Derrota al jefe</span><b id="mBoss">0 / 1</b></div>
+   <br><button class="secondary" onclick="closeSection()">VOLVER</button>
+  </div>
+ </div>
+</div>
+
+<div id="gameOver" class="screen">
+ <div class="panel"><h1 class="logo" id="goTitle">MISIÓN</h1><p class="result" id="goText"></p><button class="primary" id="goBtn">CONTINUAR</button></div>
+</div>
+
+<script>
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+let W=innerWidth,H=innerHeight,dpr=1,last=0,running=false,paused=false;
+let score=0,coins=0,lives=3,hp=100,stage=1,zone=1,weapon=1,combo=1,comboTime=0,kills=0;
+let bullets=[],enemies=[],ebullets=[],particles=[],powerups=[],stars=[],shake=0;
+let boss=null,bossPhase=0,bossActive=false,stageKills=0,zoneKills=0,spawnT=0,fireT=0,skillT=0;
+let keys={},drag=false,dragX=0,dragY=0;
+let save=JSON.parse(localStorage.getItem('legionV19Save')||'null')||{best:0,campaign:1,coins:0,damage:1,speed:1,shield:1,reactor:1,kills:0,boss:0,weapon4:0};
+coins=save.coins||0;
+
+const zoneTargets=[7,7,6], stageBase=[0,20,40];
+function resize(){dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);stars=Array.from({length:90},()=>({x:Math.random()*W,y:Math.random()*H,z:.3+Math.random()}));if(!running){player.x=W/2;player.y=H-110}}
+const player={x:W/2,y:H-110,w:32,h:46,inv:0};
+addEventListener('resize',resize);resize();
+
+function persist(){save.coins=coins;save.best=Math.max(save.best,score);save.campaign=Math.max(save.campaign,stage);save.damage=up.damage;save.speed=up.speed;save.shield=up.shield;save.reactor=up.reactor;save.kills=kills;save.boss=save.boss||0;save.weapon4=save.weapon4||0;localStorage.setItem('legionV19Save',JSON.stringify(save));refreshMenu()}
+const up={damage:save.damage||1,speed:save.speed||1,shield:save.shield||1,reactor:save.reactor||1};
+function refreshMenu(){document.getElementById('best').textContent=save.best||0;document.getElementById('campaign').textContent='ETAPA '+(save.campaign||1);document.getElementById('upDamage').textContent=up.damage;document.getElementById('upSpeed').textContent=up.speed;document.getElementById('upShield').textContent=up.shield;document.getElementById('m10').textContent=Math.min(kills,20)+' / 20';document.getElementById('m100').textContent=Math.min(kills,100)+' / 100';document.getElementById('mWeapon').textContent=save.weapon4?'1 / 1':'0 / 1';document.getElementById('mBoss').textContent=save.boss?'1 / 1':'0 / 1'}
+refreshMenu();
+
+function openSection(id){document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active')}
+function closeSection(){openSection('home')}
+document.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openSection(b.dataset.open));
+document.getElementById('resetSave').onclick=()=>{if(confirm('¿Reiniciar todo el progreso?')){localStorage.removeItem('legionV19Save');location.reload()}};
+
+function toast(t){const x=document.getElementById('toast');x.textContent=t;x.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>x.style.display='none',1500)}
+function updateHUD(){hStage.textContent=stage;hZone.textContent='ZONA '+zone;document.getElementById('killProgress').textContent=(stage<=2?stageKills:0)+' / 20';hScore.textContent=score;hLives.textContent=lives;hCoins.textContent=coins;hWeapon.textContent=weapon;hHp.style.width=Math.max(0,hp/(100+up.shield*12))*100+'%';hCombo.textContent=combo;refreshMenu()}
+function resetGame(){score=0;stage=1;zone=1;stageKills=0;zoneKills=0;lives=3;hp=100+up.shield*12;weapon=1;combo=1;comboTime=0;kills=save.kills||0;bullets=[];enemies=[];ebullets=[];particles=[];powerups=[];boss=null;bossActive=false;bossPhase=0;spawnT=.4;fireT=.1;skillT=0;player.x=W/2;player.y=H-110;player.inv=0;document.getElementById('bossHud').style.display='none';updateHUD()}
+function startGame(){document.getElementById('menu').classList.add('hidden');document.getElementById('gameOver').style.display='none';running=true;paused=false;resetGame();toast('ETAPA 1 · ZONA 1');last=performance.now();requestAnimationFrame(loop)}
+document.getElementById('play').onclick=startGame;
+document.getElementById('pause').onclick=()=>{if(!running)return;paused=!paused;last=performance.now();toast(paused?'PAUSA':'CONTINUAR')};
+
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;if(e.key==='Escape')document.getElementById('pause').click()});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=0);
+function hold(id,k){const b=document.getElementById(id);b.onpointerdown=e=>{e.preventDefault();keys[k]=1;b.setPointerCapture(e.pointerId)};b.onpointerup=b.onpointercancel=()=>keys[k]=0}
+hold('left','arrowleft');hold('right','arrowright');hold('upBtn','arrowup');hold('downBtn','arrowdown');
+document.getElementById('skill').onclick=activateSkill;
+canvas.onpointerdown=e=>{drag=true;dragX=e.clientX;dragY=e.clientY};canvas.onpointermove=e=>{if(drag){dragX=e.clientX;dragY=e.clientY}};canvas.onpointerup=()=>drag=false;canvas.onpointercancel=()=>drag=false;
+
+function shoot(power=1){const spread=weapon>=4?[-.2,-.1,0,.1,.2]:weapon===3?[-.11,0,.11]:weapon===2?[-.06,.06]:[0];for(const a of spread)bullets.push({x:player.x,y:player.y-25,vx:Math.sin(a)*460,vy:-900,r:4,damage:(1+up.damage*.65)*power})}
+function activateSkill(){if(!running||paused||skillT>0)return;skillT=Math.max(2.8,6-up.reactor*.7);for(let i=0;i<11;i++){const a=(i-5)*.11;bullets.push({x:player.x,y:player.y-20,vx:Math.sin(a)*620,vy:-1050,r:6,damage:(4+up.damage)*1.7})}player.inv=.75;toast('⚡ SOBRECARGA TÁCTICA');shake=.25}
+function enemyShot(x,y,a,s){ebullets.push({x,y,vx:Math.sin(a)*s,vy:Math.cos(a)*s,r:5})}
+function spawnEnemy(){const r=Math.random(),type=r<.12?'tank':r<.27?'elite':r<.39?'sniper':r<.51?'kamikaze':'fighter';let hpv=type==='tank'?7+stage*2:type==='elite'?3+stage:type==='sniper'?2+stage:type==='kamikaze'?2:1+Math.floor(stage/2);enemies.push({type,x:35+Math.random()*(W-70),y:-60,w:type==='tank'?75:52,h:type==='tank'?52:38,hp:hpv,max:hpv,vy:type==='kamikaze'?130+stage*14:65+stage*16,t:Math.random()*8,shot:1+Math.random()*2})}
+function drop(x,y){if(Math.random()<.18)powerups.push({x,y,type:Math.random()<.68?'coin':'weapon',t:0})}
+function killEnemy(i){const e=enemies[i];const base=e.type==='tank'?80:e.type==='elite'?35:e.type==='sniper'?45:e.type==='kamikaze'?30:10;combo=Math.min(8,combo+1);comboTime=2.2;score+=base*combo;coins+=e.type==='tank'?4:1;kills++;stageKills++;zoneKills++;burst(e.x,e.y,e.type==='tank'?28:15);drop(e.x,e.y);enemies.splice(i,1);updateHUD();checkZone()}
+function checkZone(){if(stage<3&&zoneKills>=zoneTargets[zone-1]){zoneKills=0;if(zone<3){zone++;toast('ZONA '+zone+' · AMENAZA AUMENTANDO')}else{stage++;zone=1;toast('ETAPA '+stage+' DESBLOQUEADA');weapon=Math.min(4,weapon+1);hp=Math.min(100+up.shield*12,hp+30);if(stage===3)startBoss()}}}
+function startBoss(){bossActive=true;boss={x:W/2,y:-160,w:Math.min(300,W*.72),h:150,hp:180,max:180,t:0,flash:0};document.getElementById('bossHud').style.display='block';toast('⚠ ETAPA 3 · JEFE FINAL · PULPO GIGANTE');}
+function bossFire(){const n=bossPhase===2?11:bossPhase===1?9:7;for(let i=0;i<n;i++)enemyShot(boss.x,boss.y+40,(i-(n-1)/2)*.12,180+bossPhase*55)}
+function damage(n){if(player.inv>0)return;hp-=n;player.inv=.8;shake=.18;burst(player.x,player.y,10);if(hp<=0){lives--;if(lives<=0){endGame(false);return}hp=100+up.shield*12;toast('NAVE REPARADA · '+lives+' VIDAS')}updateHUD()}
+function collect(i){const p=powerups[i];if(p.type==='coin'){coins+=5;score+=25;toast('+5 MONEDAS')}else{weapon=Math.min(4,weapon+1);score+=100;if(weapon===4)save.weapon4=1;toast('⚡ ARMA NIVEL '+weapon)}powerups.splice(i,1);updateHUD()}
+function burst(x,y,n){for(let i=0;i<n;i++)particles.push({x,y,vx:(Math.random()-.5)*380,vy:(Math.random()-.5)*380,life:.35+Math.random()*.65,r:1+Math.random()*4})}
+function hitCircle(x,y,r,o){const cx=Math.max(o.x-o.w/2,Math.min(x,o.x+o.w/2)),cy=Math.max(o.y-o.h/2,Math.min(y,o.y+o.h/2));return (x-cx)**2+(y-cy)**2<r*r}
+
+function update(dt){
+ if(!running||paused)return;
+ skillT=Math.max(0,skillT-dt);player.inv=Math.max(0,player.inv-dt);comboTime-=dt;if(comboTime<=0)combo=1;
+ let mx=0,my=0;
+if(keys.a||keys.arrowleft)mx--;if(keys.d||keys.arrowright)mx++;
+if(keys.w||keys.arrowup)my--;if(keys.s||keys.arrowdown)my++;
+const mag=Math.hypot(mx,my)||1;const spd=390+up.speed*65;
+if(mx||my){player.x=Math.max(25,Math.min(W-25,player.x+(mx/mag)*spd*dt));player.y=Math.max(55,Math.min(H-45,player.y+(my/mag)*spd*dt));}
+if(drag){player.x=Math.max(25,Math.min(W-25,dragX));if(typeof dragY==='number')player.y=Math.max(55,Math.min(H-45,dragY));}
+ fireT-=dt;if(fireT<=0){shoot();fireT=.22}
+ for(let i=bullets.length-1;i>=0;i--){let b=bullets[i];b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.y<-40||b.x<-30||b.x>W+30){bullets.splice(i,1);continue}}
+ for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.97;p.vy*=.97;p.life-=dt;if(p.life<=0)particles.splice(i,1)}
+ for(let i=ebullets.length-1;i>=0;i--){let b=ebullets[i];b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.y>H+40||b.x<-40||b.x>W+40){ebullets.splice(i,1);continue}if(hitCircle(b.x,b.y,b.r,player)){ebullets.splice(i,1);damage(10+stage*2)}}
+ for(let i=powerups.length-1;i>=0;i--){let p=powerups[i];p.t+=dt;p.y+=35*dt;if(p.y>H+30)powerups.splice(i,1);else if(Math.hypot(p.x-player.x,p.y-player.y)<30)collect(i)}
+
+ if(!bossActive){
+  spawnT-=dt;if(spawnT<=0){spawnEnemy();spawnT=Math.max(.32,.9-stage*.12)*(0.75+Math.random()*.55)}
+  for(let i=enemies.length-1;i>=0;i--){const e=enemies[i];e.t+=dt;e.y+=e.vy*dt;
+   if(e.type==='kamikaze'){e.x+=(player.x-e.x)*.55*dt}else e.x+=Math.sin(e.t*1.4)*35*dt;
+   e.shot-=dt;if(e.shot<=0&&e.y>0){if(e.type==='sniper'){enemyShot(e.x,e.y+20,Math.atan2(player.x-e.x,player.y-e.y),270)}else if(e.type!=='kamikaze')enemyShot(e.x,e.y+18,0,210+stage*30);e.shot=1.7+Math.random()*2}
+   if(e.y>H+80){enemies.splice(i,1);continue}
+   if(Math.hypot(e.x-player.x,e.y-player.y)<30){enemies.splice(i,1);damage(e.type==='tank'?28:18);continue}
+   for(let j=bullets.length-1;j>=0;j--){const b=bullets[j];if(Math.hypot(b.x-e.x,b.y-e.y)<Math.max(e.w,e.h)*.43){bullets.splice(j,1);e.hp-=b.damage;burst(b.x,b.y,2);if(e.hp<=0)killEnemy(i);break}}
+  }
+ }else{
+  boss.t+=dt;if(boss.y<115)boss.y+=130*dt;else{boss.x=W/2+Math.sin(boss.t*.62)*Math.min(W*.28,110);boss.y=115+Math.sin(boss.t*1.1)*10}
+  bossPhase=boss.hp<120?1:boss.hp<60?2:0;boss.flash=Math.max(0,boss.flash-dt);
+  const sec=Math.floor(boss.t*2);if(sec!==Math.floor((boss.t-dt)*2))bossFire();
+  for(let j=bullets.length-1;j>=0;j--){const b=bullets[j];if(hitCircle(b.x,b.y,b.r,boss)){bullets.splice(j,1);boss.hp-=b.damage;boss.flash=.08;burst(b.x,b.y,2);if(boss.hp<=0){save.boss=1;score+=1000;coins+=30;updateHUD();endGame(true);return}}}
+  if(Math.hypot(player.x-boss.x,player.y-boss.y)<boss.w*.4)damage(20)
+ }
+ updateHUD()
+}
+function draw(){
+ ctx.clearRect(0,0,W,H);const bg=ctx.createRadialGradient(W*.5,H*.7,0,W*.5,H*.5,H);bg.addColorStop(0,'#09263a');bg.addColorStop(1,'#01050d');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+ for(const s of stars){s.y+=s.z*30/60;if(s.y>H)s.y=0;ctx.globalAlpha=.2+s.z*.55;ctx.fillStyle='#bcefff';ctx.fillRect(s.x,s.y,s.z*2,s.z*2)}ctx.globalAlpha=1;
+ ctx.strokeStyle='rgba(70,210,255,.06)';for(let y=H*.2;y<H;y+=42){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+ if(player.inv<=0||Math.floor(player.inv*12)%2===0)ship(player.x,player.y);
+ for(const b of bullets){ctx.fillStyle='#eaffff';ctx.shadowBlur=15;ctx.shadowColor='#50e4ff';ctx.fillRect(b.x-2,b.y-14,4,23)}ctx.shadowBlur=0;
+ for(const b of ebullets){ctx.fillStyle='#ff607f';ctx.shadowBlur=12;ctx.shadowColor='#ff4169';ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fill()}ctx.shadowBlur=0;
+ for(const e of enemies)enemy(e);
+ for(const p of powerups){ctx.fillStyle=p.type==='coin'?'#ffd75b':'#63f3ff';ctx.shadowBlur=16;ctx.shadowColor=ctx.fillStyle;ctx.beginPath();ctx.arc(p.x,p.y,11+Math.sin(p.t*7)*2,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#00131d';ctx.font='bold 11px Arial';ctx.textAlign='center';ctx.fillText(p.type==='coin'?'$':'↑',p.x,p.y+4)}
+ for(const p of particles){ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle='#8eefff';ctx.fillRect(p.x,p.y,p.r,p.r)}ctx.globalAlpha=1;
+ if(bossActive&&boss){drawBoss();bossFill.style.width=Math.max(0,boss.hp/boss.max*100)+'%';bossName.textContent='PULPO GIGANTE · FASE '+(bossPhase+1)}
+}
+function ship(x,y){ctx.save();ctx.translate(x,y);ctx.shadowBlur=20;ctx.shadowColor='#43e3ff';ctx.fillStyle='#e5fbff';ctx.beginPath();ctx.moveTo(0,-30);ctx.lineTo(22,19);ctx.lineTo(8,13);ctx.lineTo(0,27);ctx.lineTo(-8,13);ctx.lineTo(-22,19);ctx.closePath();ctx.fill();ctx.fillStyle='#16435d';ctx.beginPath();ctx.moveTo(0,-18);ctx.lineTo(7,9);ctx.lineTo(0,17);ctx.lineTo(-7,9);ctx.closePath();ctx.fill();ctx.fillStyle='#51e8ff';ctx.fillRect(-18,17,9,5);ctx.fillRect(9,17,9,5);ctx.restore()}
+function enemy(e){ctx.save();ctx.translate(e.x,e.y);ctx.shadowBlur=14;ctx.shadowColor=e.type==='tank'?'#ff9b48':'#ff5275';ctx.fillStyle=e.type==='tank'?'#71421f':e.type==='sniper'?'#263c6d':e.type==='kamikaze'?'#742f25':e.type==='elite'?'#64264c':'#45233b';ctx.beginPath();ctx.moveTo(0,e.h/2);ctx.lineTo(-e.w/2,-e.h/5);ctx.lineTo(-e.w/5,-e.h/2);ctx.lineTo(0,-e.h/4);ctx.lineTo(e.w/5,-e.h/2);ctx.lineTo(e.w/2,-e.h/5);ctx.closePath();ctx.fill();ctx.fillStyle='#ff5a78';ctx.fillRect(-4,-2,8,5);ctx.restore()}
+function drawBoss(){ctx.save();ctx.translate(boss.x,boss.y);ctx.shadowBlur=28;ctx.shadowColor='#ff4675';ctx.fillStyle=boss.flash?'#fff':'#562047';ctx.beginPath();ctx.ellipse(0,0,boss.w*.38,boss.h*.42,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#8c2e5c';ctx.beginPath();ctx.ellipse(0,-20,boss.w*.27,boss.h*.23,0,0,Math.PI*2);ctx.fill();for(let i=-4;i<=4;i++){ctx.strokeStyle='#bd3e73';ctx.lineWidth=13;ctx.beginPath();ctx.moveTo(i*23,20);ctx.quadraticCurveTo(i*47,65+Math.abs(i)*8,i*55,105);ctx.stroke()}ctx.fillStyle='#7cf4ff';ctx.beginPath();ctx.arc(-18,-19,7,0,Math.PI*2);ctx.arc(18,-19,7,0,Math.PI*2);ctx.fill();ctx.restore()}
+function endGame(win){running=false;persist();document.getElementById('gameOver').style.display='grid';document.getElementById('goTitle').textContent=win?'OPERACIÓN COMPLETADA':'MISIÓN FALLIDA';document.getElementById('goText').textContent=win?'¡Pulpo Gigante derrotado! +1000 puntos y +30 monedas. Campaña asegurada.':'La Legión fue superada. Puntuación: '+score+' · Monedas: '+coins+'.';document.getElementById('goBtn').textContent=win?'VOLVER AL COMANDO':'REINTENTAR';document.getElementById('goBtn').onclick=()=>{document.getElementById('gameOver').style.display='none';if(win){document.getElementById('menu').classList.remove('hidden');closeSection()}else startGame()}}
+function loop(t){if(!running)return;const dt=Math.min(.033,(t-last)/1000);last=t;update(dt);draw();requestAnimationFrame(loop)}
+</script>
+
+<div id="v16hint" style="position:fixed;left:50%;bottom:8px;transform:translateX(-50%);z-index:16;
+color:#9fd9e8;font:900 9px Arial;letter-spacing:1px;opacity:.78;pointer-events:none">
+  MOVIMIENTO 360° · ARRASTRA LA NAVE · WASD / FLECHAS
+</div>
+<script>
+(function(){
+  const c=document.getElementById('v16hint');
+  setTimeout(()=>{if(c)c.style.opacity='0';},5000);
+})();
+</script>
+
+</body>
+</html>
